@@ -1,0 +1,45 @@
+1. topic的可读队列和可写队列为什么不是一致的，如果不一致会怎么样？
+   不知道。
+2. 消息重复消费的问题？
+   理论上存在重复消费的情况，当broker将消息发送给consumer后没有返回下发成功的状态时。
+3. 消息会不会丢失？
+    1 ) Broker正常关闭，启动;
+    2 ) Broker异常 Crash，然后启动;
+    3 ) OS Crash，重启;
+    4 )机器断电，但能马上恢复供电;
+    5 )磁盘损坏;
+    6 ) CPU、 主板、内存等关键设备损坏 。
+
+    1 )多 Master，每个 Master 带有 Slave;
+    2 )主从之间设置成 SYNC_MASTER;
+    3 )Producter 使用同步方式写  （同步，异步，不等返回）
+    4 )刷盘策略设置成 SYNC_FLUSH。
+4. 负载均衡问题
+   Producer 可以自定义message queue筛选，如果不使用，则采用循环的方式。
+   Consumer
+        1.push  会自己处理，不需要主动控制。  deRebalance()
+                平均分配策略(默认)(AllocateMessageQueueAveragely)
+                环形分配策略(AllocateMessageQueueAveragelyByCircle)
+                手动配置分配策略(AllocateMessageQueueByConfig)
+                机房分配策略(AllocateMessageQueueByMachineRoom)
+                一致性哈希分配策略(AllocateMessageQueueConsistentHash)
+
+
+                1       1
+                2       1
+                3       1
+                4       1
+                5       2
+                6       2
+                7       2
+                8       2
+
+
+                1       1
+                2       2
+                3       1
+                4       2
+                5       1
+                6       2
+                7       1
+                8       2
